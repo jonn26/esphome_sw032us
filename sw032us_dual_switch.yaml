@@ -1,0 +1,108 @@
+substitutions:
+  devicename: my_device_name #<--- Change This
+  upper_devicename: "My Device Name" #<--- Change This
+
+esphome:
+  name: $devicename
+  platform: ESP8266
+  board: esp01_1m
+  #esp8266_restore_from_flash: yes
+
+wifi:
+  ssid: myssid #<--- Change This
+  password: my_super_secret_wifi_password #<--- Change This
+
+# Enable logging
+logger:
+  #level: VERBOSE
+
+# Enable Home Assistant API
+api:
+  password: my_esphome_rest_pw #<--- Change This
+
+ota:
+  password: my_esphome_ota_pw #<--- Change This
+
+switch:
+  - platform: restart
+    name: $upper_devicename Restart
+
+status_led: #wifi symbol led
+    pin:
+      number: GPIO0
+      inverted: True
+
+output:
+  - platform: gpio
+    id: relay1
+    pin: GPIO13
+
+  - platform: gpio
+    id: relay2
+    pin: GPIO4
+    
+  - platform: esp8266_pwm
+    id: led1
+    pin: 
+      number: GPIO14
+      inverted: True #True = Blue when on, False = Red when on
+  - platform: esp8266_pwm
+    id: led2
+    pin: 
+      number: GPIO1
+      inverted: True #True = Blue when on, False = Red when on
+
+sensor:
+  - platform: uptime
+    name: $upper_devicename Uptime
+
+binary_sensor:
+  - platform: status
+    name: $upper_devicename Status
+
+  - platform: gpio
+    pin:
+      number: GPIO3
+      inverted: true
+    id: button1
+    on_press:
+      then:
+        - light.toggle: light1
+        
+  - platform: gpio
+    pin:
+      number: GPIO5
+      inverted: true
+    id: button2
+    on_press:
+      then:
+        - light.toggle: light2
+
+light:
+  - platform: binary
+    output: relay1
+    name: "My Light Name Controlled By Top Button" #<--- Change This
+    id: light1
+    on_turn_on:
+    - light.turn_on: button1_led
+    on_turn_off:
+    - light.turn_off: button1_led
+
+  - platform: binary
+    output: relay2
+    name: "My Light Name Controlled By Bottom Button" #<--- Change This
+    id: light2
+    on_turn_on:
+    - light.turn_on: button2_led
+    on_turn_off:
+    - light.turn_off: button2_led
+
+  - platform: monochromatic
+    output: led1
+    id: button1_led
+    default_transition_length: .5s
+
+  - platform: monochromatic
+    output: led2
+    id: button2_led
+    default_transition_length: .5s
